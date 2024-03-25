@@ -2,4 +2,5 @@
 #a script to connect to a server withput password authentication
 Host *
 	PasswordAuthentication no
+	PreferredAuthentications publickey
 	IdentityFile ~/.ssh/school
