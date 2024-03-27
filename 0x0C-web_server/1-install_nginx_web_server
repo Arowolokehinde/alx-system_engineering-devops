@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# a script that installs update the ubuntu, install nginx, make sure its listening to port 80, and also add uncomplicated firewall
-
+# Install nginx on web server; Nginx should be listening on port 80
 
 sudo apt-get -y update
 sudo apt-get -y install nginx
