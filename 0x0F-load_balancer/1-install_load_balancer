@@ -1,28 +1,52 @@
 #!/usr/bin/env bash
-# Configure Nginx so that its HTTP response contains a custom header
-balancer="\
-frontend haproxy_balancer
-	bind *:80
-	mode http
-	default_backend webservers
 
-backend webservers
-	balance roundrobin
-	server 526725-web-01 18.234.107.80 check
-	server 526725-web-02 18.207.142.76 check
-"
-
-#update packages
+# Update packages
 sudo apt-get -y update
 sudo apt-get upgrade -y
 
-#Add HAProxy PPA
+# Add HAProxy PPA
 sudo apt-get install software-properties-common -y
-sudo apt-get-repository ppa:vbernat/haproxy-2.5 -y
-sudo apt-get update -y
 
-#Install HAProxy
+# Install HAProxy
 sudo apt-get install haproxy -y
-cp -a  /etc/haproxy/haproxy.cfg{,.orig}
-echo "$balancer" | sudo tee /etc/haproxy/haproxy.cfg
+
+# Configure HAProxy
+balancer="
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    chroot /var/lib/haproxy
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    timeout connect 5000
+    timeout client 50000
+
+frontend haproxy_balancer
+    bind *:80
+    mode http
+    default_backend webservers
+
+backend webservers
+    mode http
+    balance roundrobin
+    server 526725-web-01 18.234.107.80:80 check
+    server 526725-web-02 18.207.142.76:80 check
+"
+
+# Backup the original configuration file
+sudo cp -a /etc/haproxy/haproxy.cfg{,.orig}
+
+# Overwrite the configuration file with the new configuration
+echo "$balancer" | sudo tee /etc/haproxy/haproxy.cfg > /dev/null
+
+# Restart HAProxy service
 sudo service haproxy restart
+
